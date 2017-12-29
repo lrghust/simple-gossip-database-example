@@ -2,10 +2,16 @@
 
 > Ruiguang Li
 
-I implement a simple distributed database based on gossip protocol.
+A simple distributed database based on gossip protocol.
+
+**Features**
+- Gossip Protocol
+- Multi-Client Support
+- State Machine Replica
+- Easy to launch new replica
 
 ## 1 Usage
-*Details of implementation will be talked in next part*
+*Details of implementation will be discussed in next part.*
 
 1. Launch Load Balance Server first:
 ```bash
@@ -99,6 +105,7 @@ Because gossip needs time to finish passing message to all replicas, this **mech
 
 ### 2.4 Database Replica Node
 The database replicas synchronize the state and reach consensus by **gossip** protocol.
+A new replica can add to the system directly by running this file.
 
 #### Gossip
 The gossip protocol implemented here includes two behaviors:
