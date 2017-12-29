@@ -1,4 +1,4 @@
-import socket,pickle,sys,random,time
+import socket,pickle,sys,random,time,os
 
 def gossip(msg,neighbors,pull=False):
     global state
@@ -33,7 +33,7 @@ neighbors=pickle.loads(data)
 # state: synchronized id on all nodes
 # database: store form [(name, age),...]
 # pull and tell others my addr
-state=0
+state=1
 database={}
 gossip(None,neighbors,True)
 
@@ -41,9 +41,16 @@ gossip(None,neighbors,True)
 skt.setblocking(0) # not blocking
 init=True
 while True:
-    print state,neighbors,database
+    os.system('clear')
+    print 'state:'
+    print state
+    print 'neighbors:'
+    print neighbors
+    print 'database:'
+    print database
+    print ''
     skt.sendto(pickle.dumps(('state',state)),LBServer) # tell LBServer cur state
-    
+
     try:
         data,addr=skt.recvfrom(1024)
     except socket.error,e:
@@ -53,7 +60,7 @@ while True:
         continue
 
     ind, msg=pickle.loads(data)
-    print 'ind:',ind,'state:',state,msg
+    #print 'ind:',ind,'state:',state,msg
     #import pdb;pdb.set_trace()
     if ind<=state and ind>=0:
         continue
