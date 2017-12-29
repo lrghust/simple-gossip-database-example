@@ -24,6 +24,11 @@ $ python DatabaseNode.py 127.0.0.1 10001
 ```
 *Note that the Load Balance Server uses port 10000, so don't use it here.*
 
+The output includes:
+- state: current state of this node server
+- neighbors: neighbor nodes information
+- table: the table stored on this server
+
 3. Launch the client:
 ```bash
 $ python Client.py
@@ -35,3 +40,5 @@ This simple interpretor supports two command: insert and delete
 > insert name age
 > delete name
 ```
+
+The database contains a simple table with only two attribute: name and age. By using the insert and delete command, corresponding record will be insert to or delete from the table. Table on each Database Node is shown by output of DatabaseNode.py.
