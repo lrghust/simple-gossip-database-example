@@ -3,19 +3,19 @@ import socket,pickle,sys,random,time,os
 def gossip(msg,neighbors,pull=False):
     global state
     global database
+    if not neighbors:
+        return
     if pull:
-        if neighbors:
-            peer=random.choice(neighbors)
-            skt.sendto(pickle.dumps((-2,selfAddr)),peer) # pull request
-            data,addr=skt.recvfrom(4096)
-            state, database=pickle.loads(data)
+        peer=random.choice(neighbors)
+        skt.sendto(pickle.dumps((-2,selfAddr)),peer) # pull request
+        data,addr=skt.recvfrom(4096)
+        state, database=pickle.loads(data)
     else:
         peer=random.choice(neighbors)
         skt.sendto(pickle.dumps(msg),peer)
 
 
 # set socket
-
 skt=socket.socket(socket.AF_INET,socket.SOCK_DGRAM)
 selfAddr=(sys.argv[1],int(sys.argv[2]))
 skt.bind(selfAddr)
@@ -33,7 +33,7 @@ neighbors=pickle.loads(data)
 # state: synchronized id on all nodes
 # database: store form [(name, age),...]
 # pull and tell others my addr
-state=1
+state=0
 database={}
 gossip(None,neighbors,True)
 
@@ -41,16 +41,20 @@ gossip(None,neighbors,True)
 skt.setblocking(0) # not blocking
 init=True
 while True:
+    # print replica info
     os.system('clear')
-    print 'state:'
-    print state
-    print 'neighbors:'
-    print neighbors
-    print 'database:'
-    print database
+    print 'state:',state
     print ''
-    skt.sendto(pickle.dumps(('state',state)),LBServer) # tell LBServer cur state
+    print 'neighbors:'
+    for nb in neighbors:
+        print 'IP:',nb[0],'Port:',nb[1]
+    print ''
+    print 'database:'
+    for record in database:
+        print 'name:',record,'age:',database[record]
 
+    # tell LBServer cur state
+    skt.sendto(pickle.dumps(('state',state)),LBServer)
     try:
         data,addr=skt.recvfrom(1024)
     except socket.error,e:
@@ -66,17 +70,20 @@ while True:
         continue
 
     if ind==-2: # pull request
-        skt.sendto(pickle.dumps((state+1,database)),addr)
-    # todo: ind>state+1
+        skt.sendto(pickle.dumps((state,database)),addr)
+        continue
+
     state+=1
     valid=(state,msg) # update last valid packet
 
     if msg[0]=='insert':
         database[msg[1][0]]=msg[1][1]
     elif msg[0]=='delete':
-        database.pop(msg[1])
-    else:
-        neighbors.append(msg)
+        if msg[1] in database:
+            database.pop(msg[1])
+    else: # 'NODE'
+        if msg!=selfAddr:
+            neighbors.append(msg)
 
     gossip(valid,neighbors)
     time.sleep(1)

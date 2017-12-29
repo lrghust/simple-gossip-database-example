@@ -35,16 +35,12 @@ while True:
         mark,content=pickle.loads(data)
         if mark=='state': # sychonize states
             states[db.index(addr)]=content
-            print states,nodeState,selfState
-        elif mark=='NODE': # add new node
-            print 'database',addr,': on'
-            skt.sendto(pickle.dumps(db),addr) # send other DBNode addr to this new db
-            db.append(addr)
-            states.append(0)
-            selfState+=1
+            print 'states',states,'nodeState',nodeState,'selfState',selfState
         else: # database operation
             queue.append((data,addr,selfState))
             selfState+=1
+            if mark=='NODE': # new replica node will create two operation
+                queue.append((pickle.dumps(('ADD',None)),addr,selfState-1))
 
     # wait until all node become identical and the same as self state
     if not consensus(states) or len(queue)==0 or queue[0][2]!=nodeState:
@@ -54,6 +50,14 @@ while True:
     data,addr,_=queue.pop(0)
     mark,content=pickle.loads(data)
     print mark,content
-    if mark in ['insert','delete']:
+    if db:
         dbAddr=random.choice(db) # here just random choose a DBNode as an easy example instead of doing load balance
+    if mark in ['insert','delete']:
         skt.sendto(pickle.dumps((-1,(mark,content))),dbAddr)
+    elif mark=='NODE': # add new node
+        skt.sendto(pickle.dumps(db),addr) # send other DBNode addr to this new db
+        db.append(addr)
+        states.append(0)
+        print 'database',addr,': on'
+    elif mark=='ADD': # gossip new node addr
+        skt.sendto(pickle.dumps((-1,addr)),dbAddr)
