@@ -1,7 +1,6 @@
 # A Simple Distributed Database Based on Gossip
 
 > Ruiguang Li
-> 李睿光 U201514899
 
 I implement a simple distributed database based on gossip protocol.
 
@@ -41,4 +40,4 @@ This simple interpretor supports two command: insert and delete
 > delete name
 ```
 
-The database contains a simple table with only two attribute: name and age. By using the insert and delete command, corresponding record will be insert to or delete from the table. Table on each Database Node is shown by output of DatabaseNode.py.
+The database contains a simple table with only two attribute: name and age. By using the insert and delete command, corresponding record will be inserted to or deleted from the table. Table on each Database Node is shown by output of DatabaseNode.py.
