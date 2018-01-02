@@ -104,7 +104,7 @@ Because gossip needs time to finish passing message to all replicas, this **mech
 - Message of the state of replicas in a specific frequency. Update *ReplicaState*.
 
 ### 2.4 Database Replica Node
-The database replicas synchronize the state and reach consensus by **gossip** protocol.
+The database replicas synchronize the state and reach consensus by **gossip** protocol. For the convenience to observe message transferring, The frequency of gossip is set to 1 message/second, which means while transferring messages using gossip, a node will pick a neighbor node and send message once a second.
 A new replica can add to the system directly by running this file.
 
 #### Gossip
