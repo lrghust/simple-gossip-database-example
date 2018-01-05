@@ -81,6 +81,12 @@ while True:
     elif msg[0]=='delete':
         if msg[1] in database:
             database.pop(msg[1])
+    elif msg[0]=='crash':
+        for db in msg[1]:
+            try:
+                neighbors.remove(db)
+            except ValueError,e:
+                pass
     else: # 'NODE'
         if msg!=selfAddr:
             neighbors.append(msg)

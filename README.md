@@ -8,7 +8,8 @@ A simple distributed database based on gossip protocol.
 - Gossip Protocol
 - Multi-Client Support
 - State Machine Replica
-- Easy to launch new replica
+- Launch new replica at any time
+- Crash Tolerant
 
 ## 1 Usage
 *Details of implementation will be discussed in next part.*
@@ -29,6 +30,8 @@ $ python DatabaseNode.py 127.0.0.1 10001
 ```
 *Note that the Load Balance Server uses port 10000, so don't use it here.*
 
+Database node replica can be launched at **any time** by running this file, and it can be terminated at **any time** by Ctrl+C to simulate replica crash.
+
 The output includes:
 - state: current state of this replica
 - neighbors: neighbor replicas' information
@@ -38,6 +41,8 @@ The output includes:
 ```bash
 $ python Client.py
 ```
+
+Multi client is supported which means several clients can be launched at the same time and commands can be entered from different clients at the same time.
 
 A simulated command interpretor is shown here, with mark '>' indicating each new line.
 This simple interpretor supports two command: insert and delete
@@ -59,14 +64,14 @@ Here I implement a simple client just as a simple example. The client provides s
 
 A simple table is used here with two attributes: name and age.
 
-| Name | age | 
-| - | -: | 
+| Name | age |
+| - | -: |
 | Tom | 18 |
-| Jane | 20 | 
-| ... | ... | 
+| Jane | 20 |
+| ... | ... |
 
 #### Command
-- *insert* should be followed by two arguments: 
+- *insert* should be followed by two arguments:
 ```sql
 insert name age
 ```
@@ -74,10 +79,10 @@ for example
 ```sql
 insert Tom 18
 ```
-will insert the record <'Tom','18'> into the table. 
+will insert the record <'Tom','18'> into the table.
 Here name serves as the key value in that table. So when insert same name more than one time the table will keep the last one.
 
-- *delete* should be followed by one arguments: 
+- *delete* should be followed by one arguments:
 ```sql
 delete name
 ```
@@ -93,11 +98,11 @@ The command received from the interpretor will be directly sent to the Load Bala
 Here I don't implement a real load balance algorithm for a simple demo. The program pick one replica randomly at a time.
 
 #### Details
-1. The server maintains a message queue, receiving all the commands sent by clients. 
-2. It owns a *SelfState* index indicating a seperate state itself. Every time when it receives a command from client, a pair <*SelfState*,*Command*> will be pushed in the queue and then *SelfState* increases by one. 
-3. It keeps listening for the states of all the database replicas, *ReplicaState*, and sends next command from the message queue to the picked replica to gossip **only when all the states of replicas reach a consensus and *SelfState* equals to *ReplicaState***, which is a synchronous **mechanism**.
+1. The server maintains a message queue, receiving all the commands sent by clients.
+2. It owns a *SelfState* index indicating a separate state itself. Every time when it receives a command from client, a pair <*SelfState*,*Command*> will be pushed in the queue and then *SelfState* increases by one.
+3. The state of replicas will be sent to the server periodically. It keeps listening for the states of all the database replicas, *ReplicaState*, and sends next command from the message queue to the picked replica to gossip **only when all the states of replicas reach a consensus and *SelfState* equals to *ReplicaState***, which is a synchronous **mechanism**.
 
-Because gossip needs time to finish passing message to all replicas, this **mechanism** forces the replicas to gossip messages in order strictly. The *SelfState* and *ReplicaState* are seperate variables and change seperately. When they come to the same value, it means that the replicas have finished to gossip the last message exactly and ready for next one in message queue.
+Because gossip needs time to finish passing message to all replicas, this **mechanism** forces the replicas to gossip messages in order strictly. The *SelfState* and *ReplicaState* are separate variables and change separately. When they come to the same value, it means that the replicas have finished to gossip the last message exactly and ready for next one in message queue.
 
 4. Besides commands from clients, the load balance server will also deal with messages from Database Replicas.
 - Message asking for necessary information when a new replica is launched. Send back replica addresses as the neighbors of the new replica for gossip.
@@ -109,7 +114,7 @@ A new replica can add to the system directly by running this file.
 
 #### Gossip
 The gossip protocol implemented here includes two behaviors:
-- pull and push: It is used when a new replica is launched. 
+- pull and push: It is used when a new replica is launched.
     1. Get neighbors from load balance server.
     2. Send pull request to a neighbor asking for current state and database.
     3. Receive current state and database.
@@ -117,13 +122,16 @@ The gossip protocol implemented here includes two behaviors:
 - push: push new message to a neighbor.
     New message includes:
     1. Command sent from load balance server.
-    2. New replica address when a new replica node is launched. 
+    2. New replica address when a new replica node is launched.
 
 #### State
-The replica node is implemented in a State Machine style. Every time a new message is received from other nodes, the state of this replica needs to update. The state is indicated by a variable seperately in each replica node. When a replica needs to send a new message, it wraps the message as <*state+1, message*> to gossip.
+The replica node is implemented in a State Machine style. Every time a new message is received from other nodes, the state of this replica needs to update. The state is indicated by a variable separately in each replica node. When a replica needs to send a new message, it wraps the message as <*state+1, message*> to gossip.
 
 There will be three possible cases of the **index** of message and the **state** of a replica:
 1. index < state: It means that the replica receives an old message. Ignore it.
 2. index = state: It means that the replica receives duplicate message. Ignore it.
 3. index = state+1: It means that the replica receives a new message. Extract valid data from the message and gossip to next neighbor.
 The mechanism mentioned in 2.3 guarantees that cases of index>state+1 will never happen, because load balance server will not send new message to replicas until they reach consensus, which means that there will not be more than one new message gossip between replicas.
+
+#### Crash Tolerance
+The replica node may be crashed at any time in the real world, therefore a simple crash tolerant method is implemented here. When a replica is crashed, which is simulated by terminating a DatabaseNode.py program, the crash event will also be treated as a state. While the state of a replica node is sent to the load balance server periodically, it serves as a heart-beat message to tell the server that the node is still alive. The server will record the time of last heart-beat for each node. When some nodes lose heart-beat for a while, it means a time out for the server and it will gossip message to other nodes, telling them to delete the crash nodes from their neighbor list. Because the crash is also treated as a state in replicas, it follows the **synchronous mechanism**.
