@@ -37,6 +37,8 @@ The output includes:
 - neighbors: neighbor replicas' information
 - table: the table stored on this replica
 
+*Note that the time interval of message transferring in gossip protocol is set to 1 second, so the output will be freshed per second. In addition, the Load Balance Server will choose two nodes to send the initial message in case of a crash one being chosen, so the nodes may finish synchronize very fast when there are only several nodes launching. By adding the number of running nodes it will be clear that the protocal works at a speed of 1 message/second.*
+
 3. Launch the client:
 ```bash
 $ python Client.py
