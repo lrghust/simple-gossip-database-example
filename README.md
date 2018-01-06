@@ -3,7 +3,6 @@
 > by Ruiguang Li
 
 A simple distributed database based on gossip protocol.  
-View it on my github [simple-gossip-database-example](https://github.com/lrghust/simple-gossip-database-example).
 
 **Features**
 - Gossip Protocol
@@ -51,7 +50,8 @@ The output includes:
 - neighbors: neighbor replicas' information
 - table: the table stored on this replica
 
-*Note that the time interval of message transferring in gossip protocol is set to 1 second, so the output will be freshed per second. In addition, the Load Balance Server will choose two nodes to send the initial message in case of a crash one being chosen, so the nodes may finish to synchronize very fast when there are only several nodes running. By adding the number of running nodes it will be clear that the protocal works at a speed of 1 message/second.*
+*Note that the time interval of message transferring in gossip protocol is set to 1 second, so the output will be freshed per second. In addition, the Load Balance Server will choose two nodes to send the initial message in case of a crash one being chosen, so the nodes may finish to synchronize very fast when there are only several nodes running. By adding the number of running nodes it will be clear that the protocal works at a speed of 1 message/second.*  
+*The timeout for server to detect crash is set to N+1 seconds if there are N replica nodes running, which means that nothing will happen until N+1 seconds later if a node is crashed. It will be described in detail in 2.4.*
 
 **3. Launch the client:**
 ```bash
@@ -148,4 +148,5 @@ There will be three possible cases of the **index** of message and the **state**
 The mechanism mentioned in 2.3 guarantees that cases of index>state+1 will never happen, because load balance server will not send new message to replicas until they reach consensus, which means that there will not be more than one new message gossip between replicas.
 
 #### Crash Tolerance
-The replica node may be crashed at any time in the real world, therefore a simple crash tolerant method is implemented here. When a replica is crashed, which is simulated by terminating a DatabaseNode.py program, the crash event will also be treated as a state. While the state of a replica node is sent to the load balance server periodically, it serves as a heart-beat message to tell the server that the node is still alive. The server will record the time of last heart-beat for each node. When some nodes lose heart-beat for a while, it means a time out for the server and it will gossip message to other nodes, telling them to delete the crash nodes from their neighbor list. Because the crash is also treated as a state in replicas, it follows the **synchronous mechanism**.
+The replica node may be crashed at any time in the real world, therefore a simple crash tolerant method is implemented here. When a replica is crashed, which is simulated by terminating a DatabaseNode.py program, the crash event will also be treated as a state. While the state of a replica node is sent to the load balance server periodically, it serves as a heart-beat message to tell the server that the node is still alive. The server will record the time of last heart-beat for each node. When some nodes lose heart-beat for a while, it means a time out for the server and it will gossip message to other nodes, telling them to delete the crash nodes from their neighbor list. Because the crash is also treated as a state in replicas, it follows the **synchronous mechanism**.  
+Note that the timeout here is set to N+1 seconds if there are N replica nodes running.
