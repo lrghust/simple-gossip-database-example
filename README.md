@@ -27,12 +27,12 @@ A simple distributed database based on gossip protocol.
 ## 1 Usage
 *Details of implementation will be discussed in next part.*
 
-1. Launch Load Balance Server first:
+**1. Launch Load Balance Server first:**
 ```bash
 $ python LoadBalanceServer.py
 ```
 
-2. Then launch several Database Replica:
+**2. Then launch several Database Replica:**
 ```bash
 $ python DatabaseNode.py ip_address port
 ```
@@ -52,7 +52,7 @@ The output includes:
 
 *Note that the time interval of message transferring in gossip protocol is set to 1 second, so the output will be freshed per second. In addition, the Load Balance Server will choose two nodes to send the initial message in case of a crash one being chosen, so the nodes may finish to synchronize very fast when there are only several nodes running. By adding the number of running nodes it will be clear that the protocal works at a speed of 1 message/second.*
 
-3. Launch the client:
+**3. Launch the client:**
 ```bash
 $ python Client.py
 ```
