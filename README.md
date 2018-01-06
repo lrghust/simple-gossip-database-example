@@ -11,6 +11,19 @@ A simple distributed database based on gossip protocol.
 - Launch new replica at any time
 - Crash Tolerant
 
+## Table of Contents
+- [1 Usage](#1-usage)
+- [2 Details](#2-details)
+    - [2.1 Architecture](#2.1-architecture)
+    - [2.2 Client](#2.2-client)
+        - [Command](#command)
+    - [2.3 Load Balance Server](#2.3-load-balance-server)
+        - [Details](#details)
+    - [2.4 Database Replica Node](#2.4-database-replica-node)
+        - [Gossip](#gossip)
+        - [State](#state)
+        - [Crash Tolerance](#crash-tolerance)
+
 ## 1 Usage
 *Details of implementation will be discussed in next part.*
 
