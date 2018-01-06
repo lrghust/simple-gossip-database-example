@@ -1,8 +1,9 @@
 # A Simple Distributed Database Based on Gossip
 
-> Ruiguang Li
+> by Ruiguang Li
 
-A simple distributed database based on gossip protocol.
+A simple distributed database based on gossip protocol.  
+View it on my github [simple-gossip-database-example](https://github.com/lrghust/simple-gossip-database-example).
 
 **Features**
 - Gossip Protocol
