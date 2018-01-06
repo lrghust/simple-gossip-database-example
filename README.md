@@ -115,13 +115,11 @@ Here I don't implement a real load balance algorithm for a simple demo. The prog
 #### Details
 1. The server maintains a message queue, receiving all the commands sent by clients.
 2. It owns a *SelfState* index indicating a separate state itself. Every time when it receives a command from client, a pair <*SelfState*,*Command*> will be pushed in the queue and then *SelfState* increases by one.
-3. The state of replicas will be sent to the server periodically. It keeps listening for the states of all the database replicas, *ReplicaState*, and sends next command from the message queue to the picked replica to gossip **only when all the states of replicas reach a consensus and *SelfState* equals to *ReplicaState***, which is a **synchronous mechanism**.
-
-Because gossip needs time to finish passing message to all replicas, this **mechanism** forces the replicas to gossip messages in order strictly. The *SelfState* and *ReplicaState* are separate variables and change separately. When they come to the same value, it means that the replicas have finished to gossip the last message exactly and ready for next one in message queue.
-
+3. The state of replicas will be sent to the server periodically. It keeps listening for the states of all the database replicas, *ReplicaState*, and sends next command from the message queue to the picked replica to gossip **only when all the states of replicas reach a consensus and *SelfState* equals to *ReplicaState***, which is a **synchronous mechanism**.  
+    - Because gossip needs time to finish passing message to all replicas, this **mechanism** forces the replicas to gossip messages in order strictly. The *SelfState* and *ReplicaState* are separate variables and change separately. When they come to the same value, it means that the replicas have finished to gossip the last message exactly and ready for next one in message queue.
 4. Besides commands from clients, the load balance server will also deal with messages from Database Replicas.
-- Message asking for necessary information when a new replica is launched. Send back replica addresses as the neighbors of the new replica for gossip.
-- Message of the state of replicas in a specific frequency. Update *ReplicaState*.
+    - Message asking for necessary information when a new replica is launched. Send back replica addresses as the neighbors of the new replica for gossip.
+    - Message of the state of replicas in a specific frequency. Update *ReplicaState*.
 
 ### 2.4 Database Replica Node
 The database replicas synchronize the state and reach consensus by **gossip** protocol. For the convenience to observe message transferring, the frequency of gossip is set to 1 message/second, which means that while transferring messages using gossip, a node will pick a neighbor node and send message once a second.
